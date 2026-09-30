@@ -63,8 +63,6 @@ MOOD_KEYWORDS = {
     "hype": ["hype music", "energetic hits", "pump up songs", "adrenaline music", "bass boost"],
     "sad": ["sad songs", "heartbreak music", "emotional ballads", "melancholy", "crying songs"],
     "romantic": ["romantic songs", "love songs", "romance ballad", "couple songs", "serenade"],
-    "workout": ["workout music", "gym motivation", "running music", "power workout", "beast mode"],
-    "study": ["study music", "focus beats", "concentration music", "ambient study", "piano focus"],
     "party": ["party hits", "club bangers", "dance party", "party anthem", "friday night"]
 }
 
@@ -73,8 +71,6 @@ MOOD_KEYWORDS_HINDI = {
     "hype": ["bollywood party", "badshah hype", "honey singh party", "desi bass"],
     "sad": ["sad bollywood", "arijit singh sad", "heartbreak hindi", "dard bhare gaane"],
     "romantic": ["romantic bollywood", "arijit singh love", "hindi love songs", "bollywood romance"],
-    "workout": ["bollywood workout", "hindi gym songs", "pump hindi", "desi workout"],
-    "study": ["bollywood instrumental", "hindi lo-fi", "peaceful hindi", "flute indian"],
     "party": ["bollywood party hits", "badshah party", "punjabi party", "hindi dance hits"]
 }
 

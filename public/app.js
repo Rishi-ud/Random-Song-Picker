@@ -10,12 +10,15 @@ const state = {
   isPlaying: false,
   favorites: [],
   history: [],
-  seenSongIds: new Set(),
+  seenSongIds: [], // Now a queue (array) with max length 20
   isLoading: false,
   autoPlay: false,
   noRepeat: true,
-  totalDiscovered: 0
+  totalDiscovered: 0,
+  theme: 'default'
 };
+
+const THEMES = ['default', 'cyberpunk', 'ocean', 'matcha', 'sunset'];
 
 // Mood keyword mappings for the new Mood filter
 const MOOD_KEYWORDS = {
@@ -23,8 +26,6 @@ const MOOD_KEYWORDS = {
   hype: ['hype music', 'energetic hits', 'pump up songs', 'adrenaline music', 'bass boost'],
   sad: ['sad songs', 'heartbreak music', 'emotional ballads', 'melancholy', 'crying songs'],
   romantic: ['romantic songs', 'love songs', 'romance ballad', 'couple songs', 'serenade'],
-  workout: ['workout music', 'gym motivation', 'running music', 'power workout', 'beast mode'],
-  study: ['study music', 'focus beats', 'concentration music', 'ambient study', 'piano focus'],
   party: ['party hits', 'club bangers', 'dance party', 'party anthem', 'friday night']
 };
 
@@ -33,8 +34,6 @@ const MOOD_KEYWORDS_HINDI = {
   hype: ['bollywood party', 'badshah hype', 'honey singh party', 'desi bass'],
   sad: ['sad bollywood', 'arijit singh sad', 'heartbreak hindi', 'dard bhare gaane'],
   romantic: ['romantic bollywood', 'arijit singh love', 'hindi love songs', 'bollywood romance'],
-  workout: ['bollywood workout', 'hindi gym songs', 'pump hindi', 'desi workout'],
-  study: ['bollywood instrumental', 'hindi lo-fi', 'peaceful hindi', 'flute indian'],
   party: ['bollywood party hits', 'badshah party', 'punjabi party', 'hindi dance hits']
 };
 
@@ -138,6 +137,8 @@ const DOM = {
   genreSelect: document.getElementById('genre-select'),  // hidden input
   moodSelect: document.getElementById('mood-select'),    // hidden input
   
+  themeToggleBtn: document.getElementById('theme-toggle-btn'),
+
   favoritesToggleBtn: document.getElementById('favorites-toggle-btn'),
   favoritesDrawer: document.getElementById('favorites-drawer'),
   closeDrawerBtn: document.getElementById('close-drawer-btn'),
@@ -176,6 +177,7 @@ function init() {
   loadHistoryFromStorage();
   loadSettingsFromStorage();
   loadStatsFromStorage();
+  loadThemeFromStorage();
   setupEventListeners();
   fetchRandomSong();
 }
@@ -203,6 +205,8 @@ function setupEventListeners() {
   DOM.favoritesToggleBtn.addEventListener('click', openFavoritesDrawer);
   DOM.closeDrawerBtn.addEventListener('click', closeFavoritesDrawer);
   DOM.drawerBackdrop.addEventListener('click', closeAllDrawers);
+  
+  DOM.themeToggleBtn.addEventListener('click', cycleTheme);
 
   // History Drawer Controls
   DOM.historyToggleBtn.addEventListener('click', openHistoryDrawer);
@@ -270,6 +274,44 @@ function setupEventListeners() {
       if (type === 'mood') DOM.moodSelect.value = value;
     });
   });
+}
+
+function cycleTheme() {
+  let currentIndex = THEMES.indexOf(state.theme);
+  if (currentIndex === -1) currentIndex = 0;
+  
+  let nextIndex = (currentIndex + 1) % THEMES.length;
+  let nextTheme = THEMES[nextIndex];
+  
+  state.theme = nextTheme;
+  localStorage.setItem('rsp_theme', nextTheme);
+  applyTheme(nextTheme);
+  
+  const themeNames = {
+    'default': 'Midnight Purple 💜',
+    'cyberpunk': 'Cyberpunk 💛',
+    'ocean': 'Deep Ocean 🌊',
+    'matcha': 'Matcha Green 🍵',
+    'sunset': 'Sunset Glow 🌇'
+  };
+  
+  showToast(`Theme: ${themeNames[nextTheme]}`, 'info');
+}
+
+function loadThemeFromStorage() {
+  const savedTheme = localStorage.getItem('rsp_theme');
+  if (savedTheme && THEMES.includes(savedTheme)) {
+    state.theme = savedTheme;
+  }
+  applyTheme(state.theme);
+}
+
+function applyTheme(themeName) {
+  if (themeName === 'default') {
+    document.documentElement.removeAttribute('data-theme');
+  } else {
+    document.documentElement.setAttribute('data-theme', themeName);
+  }
 }
 
 function handleKeyboard(e) {
@@ -345,12 +387,12 @@ async function fetchRandomSong(isPureWildcard = false) {
     const songData = await response.json();
 
     // Check no-repeat
-    if (state.noRepeat && state.seenSongIds.has(songData.id)) {
+    if (state.noRepeat && state.seenSongIds.includes(songData.id)) {
       // Try once more
       const retryResp = await fetch(url);
       if (retryResp.ok) {
         const retrySong = await retryResp.json();
-        if (!state.seenSongIds.has(retrySong.id)) {
+        if (!state.seenSongIds.includes(retrySong.id)) {
           onSongReceived(retrySong);
           return;
         }
@@ -367,7 +409,12 @@ async function fetchRandomSong(isPureWildcard = false) {
 }
 
 function onSongReceived(song) {
-  state.seenSongIds.add(song.id);
+  // Add to memory queue and limit to 20
+  state.seenSongIds.push(song.id);
+  if (state.seenSongIds.length > 20) {
+    state.seenSongIds.shift(); // Remove oldest
+  }
+  
   state.totalDiscovered++;
   saveStatsToStorage();
   addToHistory(song);
@@ -428,7 +475,7 @@ async function fetchDirectDeezerOrMock(genreKey, langKey, isPureWildcard, moodKe
 
       // No-repeat filter
       if (state.noRepeat) {
-        const fresh = results.filter(t => !state.seenSongIds.has(String(t.trackId)));
+        const fresh = results.filter(t => !state.seenSongIds.includes(String(t.trackId)));
         if (fresh.length > 0) results = fresh;
       }
 
@@ -773,14 +820,16 @@ function loadHistoryFromStorage() {
     }
   }
 
-  // Load seen song IDs
+  // Load seen song IDs as a queue (Array) instead of a Set
   const seenIds = localStorage.getItem('rsp_seen_ids');
   if (seenIds) {
     try {
-      state.seenSongIds = new Set(JSON.parse(seenIds));
+      state.seenSongIds = JSON.parse(seenIds);
     } catch (e) {
-      state.seenSongIds = new Set();
+      state.seenSongIds = [];
     }
+  } else {
+    state.seenSongIds = []; // Ensure it's an array
   }
 
   updateHistoryUI();
@@ -788,7 +837,7 @@ function loadHistoryFromStorage() {
 
 function saveHistoryToStorage() {
   localStorage.setItem('rsp_history', JSON.stringify(state.history));
-  localStorage.setItem('rsp_seen_ids', JSON.stringify([...state.seenSongIds]));
+  localStorage.setItem('rsp_seen_ids', JSON.stringify(state.seenSongIds));
   updateHistoryUI();
 }
 
@@ -805,9 +854,9 @@ function addToHistory(song) {
   // Add to front
   state.history.unshift(historyEntry);
 
-  // Keep only last 30
-  if (state.history.length > 30) {
-    state.history = state.history.slice(0, 30);
+  // Limit History to 20 songs
+  if (state.history.length > 20) {
+    state.history = state.history.slice(0, 20);
   }
 
   saveHistoryToStorage();
@@ -815,7 +864,7 @@ function addToHistory(song) {
 
 function clearHistory() {
   state.history = [];
-  state.seenSongIds.clear();
+  state.seenSongIds = [];
   saveHistoryToStorage();
   showToast('History cleared 🗑️', 'info');
 }
