@@ -421,82 +421,127 @@ function onSongReceived(song) {
   displaySong(song);
   updateStatsUI();
 }
+// Language-specific query pools (language baked into every search term)
+const LANG_QUERIES = {
+  hindi: [
+    "arijit singh hindi song", "bollywood hits 2024", "hindi romantic songs",
+    "shreya ghoshal hindi", "pritam bollywood", "jubin nautiyal hindi",
+    "neha kakkar hindi song", "bollywood sad songs", "hindi pop hits",
+    "ar rahman hindi", "KK hindi songs", "sonu nigam hindi"
+  ],
+  english: [
+    "pop hits 2024", "the weeknd hits", "dua lipa songs", "taylor swift best",
+    "drake top songs", "billie eilish hits", "post malone songs",
+    "ed sheeran best", "coldplay greatest hits", "bruno mars songs"
+  ],
+  punjabi: [
+    "punjabi songs 2024", "punjabi hits latest", "karan aujla punjabi",
+    "diljit dosanjh punjabi", "ap dhillon punjabi", "sidhu moose wala punjabi song",
+    "shubh punjabi", "harrdy sandhu punjabi", "punjabi bhangra hits",
+    "jass manak punjabi", "babbu maan punjabi"
+  ],
+  haryanvi: [
+    "haryanvi song 2024", "haryanvi dj song", "haryanvi hits",
+    "gulzaar chhaniwala haryanvi", "sapna choudhary haryanvi dance",
+    "renuka panwar haryanvi", "haryanvi new song", "haryanvi mashup",
+    "haryanvi ragni", "haryanvi folk song", "ajay hooda haryanvi"
+  ],
+  desi: [
+    "desi hip hop", "indian rap song", "divine rap hindi",
+    "krsna rap song", "seedhe maut rap", "mc stan song",
+    "emiway bantai rap", "raftaar rap hindi", "gully rap hindi"
+  ],
+  phonk: [
+    "phonk music", "phonk drift", "brazilian phonk", "phonk remix",
+    "aggressive phonk", "dark phonk", "phonk bass boosted",
+    "russian phonk", "phonk 2024", "gym phonk"
+  ]
+};
 
-const HINDI_GENRE_NAMES = new Set([
-  'bollywood', 'indian pop', 'filmi', 'sufi & ghazal', 'indian classical',
-  'regional indian music', 'devotional & spiritual', 'ghazals', 'bhangra',
-  'punjabi pop', 'folk', 'carnatic classical', 'hindustani classical'
-]);
+const CHAOS_QUERIES_FE = {
+  hindi: ["bollywood party bangers", "bollywood best songs all time", "honey singh party", "badshah hit songs", "bollywood bass boosted"],
+  english: ["greatest songs of all time", "best party songs ever", "top bangers all time", "epic rock anthems", "legendary pop hits"],
+  punjabi: ["punjabi banger songs", "sidhu moose wala legend", "ap dhillon banger", "punjabi bass boosted", "karan aujla banger"],
+  haryanvi: ["haryanvi banger song", "haryanvi dj remix banger", "haryanvi viral song", "haryanvi superhit song", "haryanvi dance song"],
+  desi: ["indian rap banger", "desi hip hop banger", "divine banger rap", "mc stan viral", "krsna diss track"],
+  phonk: ["phonk banger", "phonk bass boosted hard", "aggressive phonk banger", "phonk gym motivation", "dark phonk hard"]
+};
 
-const PUNJABI_ARTISTS = [
-  "Diljit Dosanjh", "Karan Aujla", "AP Dhillon", "Sidhu Moose Wala", "Shubh", 
-  "Harrdy Sandhu", "Guru Randhawa", "Ammy Virk", "B Praak", "Garry Sandhu"
-];
-const HARYANVI_ARTISTS = [
-  "Fazilpuria", "Renuka Panwar", "MD KD", "Sapna Choudhary", 
-  "Gulzaar Chhaniwala", "Raju Punjabi", "Vikas Kumar"
-];
-const DESI_ARTISTS = [
-  "Divine", "Naezy", "KRSNA", "Seedhe Maut", "MC Stan", "Talha Anjum",
-  "Emiway Bantai", "Raftaar", "Fotty Seven", "Moksh"
-];
-const CHAOS_TERMS = [
-  "skrillex", "hardstyle", "electronic bass boost", "phonk", "crazy frog",
-  "dubstep banger", "heavy metal slipknot", "techno mix", "hardcore edm", "doom eternal soundtrack"
-];
+const MOOD_QUERIES_FE = {
+  hindi: {
+    chill: ["chill bollywood song", "soft hindi songs", "anuv jain chill"],
+    hype: ["bollywood party song", "badshah hype hindi"],
+    sad: ["sad bollywood song", "arijit singh sad hindi", "dard bhare gaane hindi"],
+    romantic: ["romantic bollywood song", "arijit singh love hindi"],
+    party: ["bollywood party hits", "hindi dance party song"]
+  },
+  english: {
+    chill: ["chill vibes", "lo-fi chill", "relaxing music"],
+    hype: ["hype music", "energetic hits", "pump up songs"],
+    sad: ["sad songs english", "heartbreak music", "emotional ballads english"],
+    romantic: ["romantic songs english", "love songs best"],
+    party: ["party hits english", "club bangers", "dance party songs"]
+  },
+  punjabi: {
+    chill: ["punjabi soft song", "punjabi chill vibes"],
+    hype: ["punjabi party song", "punjabi bass boosted"],
+    sad: ["punjabi sad song", "sidhu moose wala sad"],
+    romantic: ["punjabi love song", "punjabi romantic"],
+    party: ["punjabi party hit", "bhangra party"]
+  },
+  haryanvi: {
+    chill: ["haryanvi slow song", "haryanvi romantic soft"],
+    hype: ["haryanvi dj party", "haryanvi bass boosted"],
+    sad: ["haryanvi sad song"],
+    romantic: ["haryanvi romantic song", "haryanvi love song"],
+    party: ["haryanvi dance party", "haryanvi dj remix hit"]
+  },
+  desi: {
+    chill: ["indian lofi rap", "desi hip hop soft"],
+    hype: ["desi rap banger", "indian rap hype"],
+    sad: ["desi rap sad", "indian rap emotional"],
+    romantic: ["indian rap love song"],
+    party: ["desi rap party", "indian hip hop party banger"]
+  },
+  phonk: {
+    chill: ["phonk chill", "slow phonk"],
+    hype: ["aggressive phonk", "gym phonk hard"],
+    sad: ["dark phonk", "sad phonk"],
+    romantic: ["phonk chill vibes"],
+    party: ["phonk party mix", "drift phonk party"]
+  }
+};
 
-function isHindiTrack(track) {
-  const g = (track.primaryGenreName || '').toLowerCase();
-  return [...HINDI_GENRE_NAMES].some(h => g.includes(h));
-}
+const LANG_LABEL_MAP = {
+  hindi: '🇮🇳 HINDI', english: '🇬🇧 ENGLISH', punjabi: '🌾 PUNJABI',
+  haryanvi: '🚜 HARYANVI', desi: '🔥 DESI HIP-HOP', phonk: '💀 PHONK'
+};
 
-// Direct iTunes Fetch or Mock Fallback for Standalone Frontend Preview
+function pick(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
+
+// Direct iTunes Fetch Fallback (query-based, no genre filtering)
 async function fetchDirectDeezerOrMock(genreKey, langKey, isPureWildcard, moodKey) {
   try {
     let query = 'top hits';
     const selectedMode = DOM.modeSelect.value;
 
-    // If mood is selected, prioritize mood keywords
     if (selectedMode === 'chaos') {
-      query = CHAOS_TERMS[Math.floor(Math.random() * CHAOS_TERMS.length)];
+      query = pick(CHAOS_QUERIES_FE[langKey] || CHAOS_QUERIES_FE.english);
     } else if (moodKey && moodKey !== 'any') {
-      const moodPool = ['hindi', 'punjabi', 'haryanvi', 'desi'].includes(langKey) ? MOOD_KEYWORDS_HINDI : MOOD_KEYWORDS;
-      if (moodPool[moodKey]) {
-        query = moodPool[moodKey][Math.floor(Math.random() * moodPool[moodKey].length)];
-      }
+      const langMoods = MOOD_QUERIES_FE[langKey] || MOOD_QUERIES_FE.english;
+      query = pick(langMoods[moodKey] || langMoods.hype || ['top hits']);
     } else if (isPureWildcard) {
-      const wildcardTerms = ['arijit singh', 'the weeknd', 'dua lipa', 'prateek kuhad', 'coldplay', 'bollywood', 'taylor swift', 'diljit dosanjh', 'drake', 'ar rahman'];
-      query = wildcardTerms[Math.floor(Math.random() * wildcardTerms.length)];
-    } else if (langKey === 'punjabi') {
-      query = PUNJABI_ARTISTS[Math.floor(Math.random() * PUNJABI_ARTISTS.length)];
-    } else if (langKey === 'haryanvi') {
-      query = HARYANVI_ARTISTS[Math.floor(Math.random() * HARYANVI_ARTISTS.length)];
-    } else if (langKey === 'desi') {
-      query = DESI_ARTISTS[Math.floor(Math.random() * DESI_ARTISTS.length)];
-    } else if (langKey === 'hindi') {
-      const hindiTerms = ['bollywood hits', 'hindi pop', 'arijit singh', 'prateek kuhad', 'diljit dosanjh', 'indian indie', 'desi hip hop'];
-      query = genreKey !== 'all' ? `hindi ${genreKey}` : hindiTerms[Math.floor(Math.random() * hindiTerms.length)];
-    } else if (langKey === 'english') {
-      query = genreKey !== 'all' ? `${genreKey} hits` : 'global top hits';
+      const allQueries = [].concat(...Object.values(LANG_QUERIES));
+      query = pick(allQueries);
     } else {
-      query = genreKey !== 'all' ? genreKey : 'top hits';
+      query = pick(LANG_QUERIES[langKey] || LANG_QUERIES.english);
     }
 
-    // Use country param to bias iTunes store (IN = more Bollywood, US = more English)
-    const country = langKey === 'english' ? 'us' : 'in';
+    const country = ['english', 'phonk'].includes(langKey) ? 'us' : 'in';
     const res = await fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(query)}&entity=song&limit=50&country=${country}`);
     if (res.ok) {
       const data = await res.json();
       let results = (data.results || []).filter(t => t.previewUrl);
-
-      // Language filter by primaryGenreName
-      if (['hindi', 'punjabi', 'haryanvi', 'desi'].includes(langKey)) {
-        const langFiltered = results.filter(t => isHindiTrack(t));
-        if (langFiltered.length > 0) results = langFiltered;
-      } else if (langKey === 'english') {
-        const langFiltered = results.filter(t => !isHindiTrack(t));
-        if (langFiltered.length > 0) results = langFiltered;
-      }
 
       // No-repeat filter
       if (state.noRepeat) {
@@ -505,8 +550,8 @@ async function fetchDirectDeezerOrMock(genreKey, langKey, isPureWildcard, moodKe
       }
 
       if (results.length > 0) {
-        const track = results[Math.floor(Math.random() * results.length)];
-        const langPrefix = langKey === 'hindi' ? '🇮🇳 HINDI' : (langKey === 'english' ? '🇬🇧 ENGLISH' : '🌐 MIXED');
+        const track = pick(results);
+        const langPrefix = LANG_LABEL_MAP[langKey] || '🌐 MIXED';
         const song = {
           id: String(track.trackId),
           title: track.trackName,

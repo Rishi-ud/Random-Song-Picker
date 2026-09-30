@@ -6,7 +6,7 @@ from fastapi.middleware.cors import CORSMiddleware
 app = FastAPI(
     title="TuneTragedy API",
     description="FastAPI Backend for TuneTragedy - Pick random Hindi & English music tracks",
-    version="2.0.0"
+    version="3.0.0"
 )
 
 app.add_middleware(
@@ -17,144 +17,230 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-HINDI_KEYWORDS = {
-    "pop": ["bollywood pop", "hindi pop hits", "arijit singh pop", "diljit dosanjh", "badshah hits"],
-    "rock": ["hindi rock", "indian rock bands", "the local train", "euphoria hindi", "rockstar movie songs"],
-    "hiphop": ["desi hip hop", "divine gully gang", "krsna rap", "seedhe maut", "raftaar rap", "mc stan"],
-    "dance": ["bollywood party hits", "hindi dance remix", "punjabi party beats", "bollywood club"],
-    "indie": ["indian indie", "prateek kuhad", "anuv jain", "zaeden", "twin strings", "when chai met toast"],
-    "rnb": ["hindi romantic hits", "arijit singh unplugged", "jubin nautiyal soul", "shreya ghoshal classics"],
-    "jazz": ["bollywood acoustic", "hindi unplugged guitar", "coke studio bharat"],
-    "classical": ["sufi hindi songs", "ar rahman classics", "coke studio pakistan hindi", "classical bollywood"]
+# ═══════════════════════════════════════════
+# LANGUAGE-SPECIFIC SEARCH POOLS
+# Every query INCLUDES the language keyword so iTunes can't return wrong results
+# ═══════════════════════════════════════════
+
+HINDI_QUERIES = [
+    "arijit singh hindi song", "bollywood hits 2024", "hindi romantic songs",
+    "shreya ghoshal hindi", "pritam bollywood", "jubin nautiyal hindi",
+    "neha kakkar hindi song", "atif aslam hindi", "mohit chauhan hindi",
+    "bollywood sad songs", "hindi pop hits", "bollywood new songs",
+    "ar rahman hindi", "vishal shekhar hindi", "hindi unplugged",
+    "KK hindi songs", "sonu nigam hindi", "kumar sanu hindi hits"
+]
+
+ENGLISH_QUERIES = [
+    "pop hits 2024", "the weeknd hits", "dua lipa songs", "taylor swift best",
+    "drake top songs", "billie eilish hits", "post malone songs",
+    "ed sheeran best", "coldplay greatest hits", "bruno mars songs",
+    "SZA top songs", "kendrick lamar best", "arctic monkeys hits",
+    "linkin park best", "queen greatest hits", "rihanna top songs",
+    "harry styles songs", "tame impala best", "gorillaz hits"
+]
+
+PUNJABI_QUERIES = [
+    "punjabi songs 2024", "punjabi hits latest", "karan aujla punjabi",
+    "diljit dosanjh punjabi", "ap dhillon punjabi", "sidhu moose wala punjabi song",
+    "shubh punjabi", "harrdy sandhu punjabi", "guru randhawa punjabi",
+    "ammy virk punjabi song", "b praak punjabi", "garry sandhu punjabi",
+    "punjabi bhangra hits", "new punjabi song", "punjabi party song",
+    "parmish verma punjabi", "jass manak punjabi", "babbu maan punjabi"
+]
+
+HARYANVI_QUERIES = [
+    "haryanvi song 2024", "haryanvi dj song", "haryanvi hits",
+    "gulzaar chhaniwala haryanvi", "sapna choudhary haryanvi dance",
+    "renuka panwar haryanvi", "raju punjabi haryanvi", "md kd haryanvi",
+    "haryanvi new song", "haryanvi mashup", "haryanvi folk song",
+    "haryanvi ragni", "fazilpuria haryanvi", "haryanvi party song",
+    "ajay hooda haryanvi", "haryanvi romantic song", "haryanvi top hits"
+]
+
+DESI_QUERIES = [
+    "desi hip hop", "indian rap song", "divine rap hindi",
+    "krsna rap song", "seedhe maut rap", "mc stan song",
+    "emiway bantai rap", "raftaar rap hindi", "naezy rap mumbai",
+    "talha anjum rap", "desi rap 2024", "indian hip hop new",
+    "fotty seven rap", "indian underground rap", "gully rap hindi",
+    "desi rap cypher", "indian trap song"
+]
+
+PHONK_QUERIES = [
+    "phonk music", "phonk drift", "brazilian phonk", "phonk remix",
+    "aggressive phonk", "cowbell phonk", "dark phonk", "phonk house",
+    "phonk bass boosted", "russian phonk", "phonk 2024", "gym phonk",
+    "drift phonk music", "phonk racing", "best phonk songs"
+]
+
+# ═══════════════════════════════════════════
+# CHAOS MODE — BIGGEST BANGERS PER LANGUAGE
+# ═══════════════════════════════════════════
+
+CHAOS_QUERIES = {
+    "hindi": [
+        "bollywood party bangers", "bollywood best songs all time", "honey singh party",
+        "badshah hit songs", "bollywood dance hits", "bollywood iconic songs",
+        "bollywood club remix", "yo yo honey singh", "bollywood bass boosted"
+    ],
+    "english": [
+        "greatest songs of all time", "best party songs ever", "top bangers all time",
+        "epic rock anthems", "best rap songs ever", "legendary pop hits",
+        "club bangers best", "hype songs playlist", "goosebump songs"
+    ],
+    "punjabi": [
+        "punjabi banger songs", "sidhu moose wala legend", "ap dhillon banger",
+        "punjabi party banger", "punjabi bass boosted", "karan aujla banger",
+        "punjabi top hit all time", "punjabi club song", "diljit dosanjh banger"
+    ],
+    "haryanvi": [
+        "haryanvi banger song", "haryanvi dj remix banger", "gulzaar chhaniwala banger",
+        "haryanvi party dj", "haryanvi bass boosted remix", "haryanvi viral song",
+        "haryanvi superhit song", "haryanvi dance song", "haryanvi top banger"
+    ],
+    "desi": [
+        "indian rap banger", "desi hip hop banger", "divine banger rap",
+        "mc stan viral", "seedhe maut banger", "krsna diss track",
+        "emiway banger song", "indian rap cypher", "desi trap banger"
+    ],
+    "phonk": [
+        "phonk banger", "phonk bass boosted hard", "best phonk songs ever",
+        "aggressive phonk banger", "phonk gym motivation", "dark phonk hard"
+    ]
 }
 
-ENGLISH_KEYWORDS = {
-    "pop": ["pop hits", "dance pop", "synthpop", "top pop classics"],
-    "rock": ["rock classics", "alternative rock", "hard rock", "indie rock"],
-    "hiphop": ["hip hop classics", "trap music", "rap hits 2024", "90s hip hop"],
-    "dance": ["edm party", "house music", "electro dance", "techno classics"],
-    "indie": ["indie pop", "indie folk", "bedroom pop", "alt indie"],
-    "rnb": ["r&b soul", "neo soul", "contemporary rnb", "90s rnb"],
-    "jazz": ["jazz classics", "smooth jazz", "bebop classics", "blue note jazz"],
-    "classical": ["piano masterworks", "orchestral classics", "symphony classics"]
+# Mood / Vibe keyword mappings (with language baked in)
+MOOD_QUERIES = {
+    "hindi": {
+        "chill": ["chill bollywood song", "soft hindi songs", "anuv jain chill", "prateek kuhad soft hindi"],
+        "hype": ["bollywood party song", "badshah hype hindi", "honey singh party hindi"],
+        "sad": ["sad bollywood song", "arijit singh sad hindi", "heartbreak hindi song", "dard bhare gaane hindi"],
+        "romantic": ["romantic bollywood song", "arijit singh love hindi", "hindi love songs", "bollywood romance"],
+        "party": ["bollywood party hits", "badshah party hindi", "hindi dance party song"]
+    },
+    "english": {
+        "chill": ["chill vibes", "lo-fi chill", "relaxing music", "calm acoustic songs", "soft beats"],
+        "hype": ["hype music", "energetic hits", "pump up songs", "adrenaline music"],
+        "sad": ["sad songs english", "heartbreak music", "emotional ballads english"],
+        "romantic": ["romantic songs english", "love songs best", "romance ballad"],
+        "party": ["party hits english", "club bangers", "dance party songs", "party anthem"]
+    },
+    "punjabi": {
+        "chill": ["punjabi soft song", "punjabi chill vibes", "punjabi sad slow"],
+        "hype": ["punjabi party song", "punjabi bass boosted", "punjabi banger"],
+        "sad": ["punjabi sad song", "punjabi heartbreak", "sidhu moose wala sad"],
+        "romantic": ["punjabi love song", "punjabi romantic", "punjabi couple song"],
+        "party": ["punjabi party hit", "punjabi dance song", "bhangra party"]
+    },
+    "haryanvi": {
+        "chill": ["haryanvi slow song", "haryanvi romantic soft"],
+        "hype": ["haryanvi dj party", "haryanvi bass boosted", "haryanvi banger"],
+        "sad": ["haryanvi sad song", "haryanvi dard bhara"],
+        "romantic": ["haryanvi romantic song", "haryanvi love song"],
+        "party": ["haryanvi dance party", "haryanvi dj remix hit"]
+    },
+    "desi": {
+        "chill": ["indian lofi rap", "divine chill rap", "desi hip hop soft"],
+        "hype": ["desi rap banger", "indian rap hype", "krsna hype"],
+        "sad": ["desi rap sad", "emiway sad rap", "indian rap emotional"],
+        "romantic": ["indian rap love song", "desi hip hop romantic"],
+        "party": ["desi rap party", "indian hip hop party banger"]
+    },
+    "phonk": {
+        "chill": ["phonk chill", "lo-fi phonk", "slow phonk"],
+        "hype": ["aggressive phonk", "gym phonk hard", "phonk banger"],
+        "sad": ["dark phonk", "sad phonk", "melancholy phonk"],
+        "romantic": ["phonk chill vibes"],
+        "party": ["phonk party mix", "drift phonk party"]
+    }
 }
 
-HINDI_ARTISTS = [
-    "Arijit Singh", "Shreya Ghoshal", "A.R. Rahman", "Pritam", "Diljit Dosanjh",
-    "Jubin Nautiyal", "Divine", "Prateek Kuhad", "Anuv Jain", "Neha Kakkar",
-    "KK", "Mohit Chauhan", "Atif Aslam", "Badshah", "Vishal-Shekhar", "KRSNA"
-]
-
-ENGLISH_ARTISTS = [
-    "The Weeknd", "Dua Lipa", "Taylor Swift", "Harry Styles", "Daft Punk",
-    "Bruno Mars", "Billie Eilish", "Coldplay", "Kendrick Lamar", "Drake",
-    "Post Malone", "Ed Sheeran", "Rihanna", "Queen", "Arctic Monkeys",
-    "Fleetwood Mac", "Gorillaz", "Tame Impala", "SZA", "Linkin Park"
-]
-
-WILDCARD_TERMS = HINDI_ARTISTS + ENGLISH_ARTISTS + [
-    "love", "night", "summer", "dream", "fire", "light", "sky", "dil", "pyar", 
-    "yaari", "zindagi", "safar", "roshni", "wild", "shadow", "gold", "electric"
-]
-
-PUNJABI_ARTISTS = [
-    "Diljit Dosanjh", "Karan Aujla", "AP Dhillon", "Sidhu Moose Wala", "Shubh", 
-    "Harrdy Sandhu", "Guru Randhawa", "Ammy Virk", "B Praak", "Garry Sandhu"
-]
-
-HARYANVI_ARTISTS = [
-    "Fazilpuria", "Renuka Panwar", "MD KD", "Sapna Choudhary", 
-    "Gulzaar Chhaniwala", "Raju Punjabi", "Vikas Kumar"
-]
-
-DESI_ARTISTS = [
-    "Divine", "Naezy", "KRSNA", "Seedhe Maut", "MC Stan", "Talha Anjum",
-    "Emiway Bantai", "Raftaar", "Fotty Seven", "Moksh"
-]
-
-CHAOS_TERMS = [
-    "skrillex", "hardstyle", "electronic bass boost", "phonk", "crazy frog",
-    "dubstep banger", "heavy metal slipknot", "techno mix", "hardcore edm", "doom eternal soundtrack"
-]
-
-# Mood / Vibe keyword mappings
-MOOD_KEYWORDS = {
-    "chill": ["chill vibes", "lo-fi", "relaxing music", "calm acoustic", "ambient chill", "soft beats"],
-    "hype": ["hype music", "energetic hits", "pump up songs", "adrenaline music", "bass boost"],
-    "sad": ["sad songs", "heartbreak music", "emotional ballads", "melancholy", "crying songs"],
-    "romantic": ["romantic songs", "love songs", "romance ballad", "couple songs", "serenade"],
-    "party": ["party hits", "club bangers", "dance party", "party anthem", "friday night"]
-}
-
-MOOD_KEYWORDS_HINDI = {
-    "chill": ["chill bollywood", "soft hindi songs", "anuv jain chill", "prateek kuhad soft"],
-    "hype": ["bollywood party", "badshah hype", "honey singh party", "desi bass"],
-    "sad": ["sad bollywood", "arijit singh sad", "heartbreak hindi", "dard bhare gaane"],
-    "romantic": ["romantic bollywood", "arijit singh love", "hindi love songs", "bollywood romance"],
-    "party": ["bollywood party hits", "badshah party", "punjabi party", "hindi dance hits"]
+GENRE_QUERIES = {
+    "hindi": {
+        "pop": ["bollywood pop song", "hindi pop hits", "arijit singh pop hindi"],
+        "rock": ["hindi rock song", "the local train hindi", "indian rock band song"],
+        "hiphop": ["desi hip hop song", "divine gully hindi", "krsna rap hindi"],
+        "dance": ["bollywood dance song", "hindi dance remix", "bollywood club hit"],
+        "indie": ["indian indie song", "prateek kuhad hindi", "anuv jain hindi"],
+        "rnb": ["hindi romantic song", "arijit unplugged hindi", "shreya ghoshal hindi"],
+        "jazz": ["bollywood acoustic song", "hindi unplugged", "coke studio bharat"],
+        "classical": ["sufi hindi song", "ar rahman classical hindi", "classical bollywood"]
+    },
+    "english": {
+        "pop": ["pop hits", "dance pop song", "top pop song"],
+        "rock": ["rock classic song", "alternative rock hits", "indie rock song"],
+        "hiphop": ["hip hop classic song", "trap music hit", "rap song 2024"],
+        "dance": ["edm party song", "house music hit", "electro dance song"],
+        "indie": ["indie pop song", "indie folk song", "bedroom pop"],
+        "rnb": ["rnb soul song", "neo soul hit", "contemporary rnb"],
+        "jazz": ["jazz classic song", "smooth jazz", "blue note jazz"],
+        "classical": ["piano classic", "orchestral masterwork", "symphony classic"]
+    }
 }
 
 @app.get("/api/health")
 def health_check():
-    return {"status": "ok", "service": "TuneTragedy Backend v2.1"}
+    return {"status": "ok", "service": "TuneTragedy Backend v3.0"}
 
 @app.get("/api/random-song")
 async def get_random_song(
     genre: str = Query("all", description="Genre filter"),
-    language: str = Query("all", description="Language filter: hindi, english, or all"),
-    mode: str = Query("chart", description="Discovery mode: chart, deepcuts, or wildcard"),
-    mood: str = Query("any", description="Mood/vibe filter: chill, hype, sad, romantic, workout, study, party")
+    language: str = Query("all", description="Language filter"),
+    mode: str = Query("chart", description="Discovery mode"),
+    mood: str = Query("any", description="Mood/vibe filter")
 ):
-    """
-    Fetch a random song with audio preview, supporting Hindi & English languages and mood filters.
-    """
     headers = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"}
 
-    # iTunes genre names that indicate Hindi / Indian music
-    HINDI_GENRES = {
-        "bollywood", "indian pop", "filmi", "sufi & ghazal", "indian classical",
-        "regional indian music", "devotional & spiritual", "ghazals", "bhangra",
-        "punjabi pop", "folk", "carnatic classical", "hindustani classical"
-    }
-
-    def is_hindi_track(track: dict) -> bool:
-        g = (track.get("primaryGenreName") or "").lower()
-        return any(h in g for h in HINDI_GENRES)
-
-    def is_english_track(track: dict) -> bool:
-        return not is_hindi_track(track)
-
-    # 1. Determine Language pool
+    # 1. Determine Language
     target_lang = language.lower()
     if target_lang == "all":
-        target_lang = random.choice(["hindi", "english", "punjabi", "haryanvi", "desi"])
+        target_lang = random.choice(["hindi", "english", "punjabi"])
 
-    # iTunes country bias: IN store has more Bollywood, US store has more English
-    itunes_country = "us" if target_lang == "english" else "in"
+    # iTunes country
+    itunes_country = "us" if target_lang in ["english", "phonk"] else "in"
 
-    # 2. Select Search Query — mode/mood takes priority
+    # 2. Build search query — language is ALWAYS part of the query
     if mode == "chaos":
-        query = random.choice(CHAOS_TERMS)
-    elif mood != "any" and mood in MOOD_KEYWORDS:
-        mood_pool = MOOD_KEYWORDS_HINDI if target_lang in ["hindi", "punjabi", "haryanvi", "desi"] else MOOD_KEYWORDS
-        query = random.choice(mood_pool[mood])
-    elif mode == "wildcard":
-        query = random.choice(WILDCARD_TERMS)
-    elif target_lang == "punjabi":
-        query = random.choice(PUNJABI_ARTISTS)
-    elif target_lang == "haryanvi":
-        query = random.choice(HARYANVI_ARTISTS)
-    elif target_lang == "desi":
-        query = random.choice(DESI_ARTISTS)
-    elif mode == "deepcuts":
-        query = random.choice(HINDI_ARTISTS if target_lang == "hindi" else ENGLISH_ARTISTS)
-    else:
-        # Chart / Popular mode
-        keywords_dict = HINDI_KEYWORDS if target_lang == "hindi" else ENGLISH_KEYWORDS
-        if genre in keywords_dict:
-            query = random.choice(keywords_dict[genre])
+        pool = CHAOS_QUERIES.get(target_lang, CHAOS_QUERIES["english"])
+        query = random.choice(pool)
+    elif mood != "any":
+        lang_moods = MOOD_QUERIES.get(target_lang, MOOD_QUERIES["english"])
+        if mood in lang_moods:
+            query = random.choice(lang_moods[mood])
         else:
-            query = random.choice(HINDI_ARTISTS if target_lang == "hindi" else ENGLISH_ARTISTS)
+            query = random.choice(lang_moods.get("hype", ["top hits"]))
+    elif mode == "wildcard":
+        # Wildcard still uses general pool
+        all_queries = HINDI_QUERIES + ENGLISH_QUERIES + PUNJABI_QUERIES + HARYANVI_QUERIES + DESI_QUERIES
+        query = random.choice(all_queries)
+    elif mode == "deepcuts":
+        lang_pool = {
+            "hindi": HINDI_QUERIES, "english": ENGLISH_QUERIES,
+            "punjabi": PUNJABI_QUERIES, "haryanvi": HARYANVI_QUERIES,
+            "desi": DESI_QUERIES, "phonk": PHONK_QUERIES
+        }
+        query = random.choice(lang_pool.get(target_lang, ENGLISH_QUERIES))
+    else:
+        # Chart mode — check genre first, then fallback to language pool
+        lang_genres = GENRE_QUERIES.get(target_lang, {})
+        if genre in lang_genres:
+            query = random.choice(lang_genres[genre])
+        else:
+            lang_pool = {
+                "hindi": HINDI_QUERIES, "english": ENGLISH_QUERIES,
+                "punjabi": PUNJABI_QUERIES, "haryanvi": HARYANVI_QUERIES,
+                "desi": DESI_QUERIES, "phonk": PHONK_QUERIES
+            }
+            query = random.choice(lang_pool.get(target_lang, ENGLISH_QUERIES))
+
+    # Label map
+    lang_map = {
+        "hindi": "🇮🇳 HINDI", "english": "🇬🇧 ENGLISH",
+        "punjabi": "🌾 PUNJABI", "haryanvi": "🚜 HARYANVI",
+        "desi": "🔥 DESI HIP-HOP", "phonk": "💀 PHONK"
+    }
+    lang_label = lang_map.get(target_lang, "🎶")
 
     async with httpx.AsyncClient(headers=headers, timeout=8.0) as client:
         # Try iTunes Search API
@@ -166,33 +252,11 @@ async def get_random_song(
             resp = await client.get(url)
             if resp.status_code == 200:
                 results = resp.json().get("results", [])
-
-                # Step 1: must have a preview URL
                 valid_tracks = [t for t in results if t.get("previewUrl")]
 
-                # Step 2: filter by language using primaryGenreName
-                if target_lang in ["hindi", "punjabi", "haryanvi", "desi"]:
-                    lang_filtered = [t for t in valid_tracks if is_hindi_track(t)]
-                elif target_lang == "english":
-                    lang_filtered = [t for t in valid_tracks if is_english_track(t)]
-                else:
-                    lang_filtered = valid_tracks
-
-                # Fall back to unfiltered if filter was too strict
-                final_tracks = lang_filtered if lang_filtered else valid_tracks
-
-                if final_tracks:
-                    track = random.choice(final_tracks)
+                if valid_tracks:
+                    track = random.choice(valid_tracks)
                     cover_url = track.get("artworkUrl100", "").replace("100x100bb", "600x600bb")
-                    
-                    lang_map = {
-                        "hindi": "🇮🇳 HINDI",
-                        "english": "🇬🇧 ENGLISH",
-                        "punjabi": "🌾 PUNJABI",
-                        "haryanvi": "🚜 HARYANVI",
-                        "desi": "🔥 DESI"
-                    }
-                    lang_label = lang_map.get(target_lang, "🎶")
                     return {
                         "id": str(track.get("trackId")),
                         "title": track.get("trackName"),
@@ -220,7 +284,7 @@ async def get_random_song(
                         "title": track.get("title"),
                         "artist": track.get("artist", {}).get("name", "Unknown Artist"),
                         "album": track.get("album", {}).get("title", "Single"),
-                        "genre": f"{target_lang.upper()} • {genre.upper()}",
+                        "genre": f"{lang_label} • {genre.upper()}",
                         "language": target_lang,
                         "cover": track.get("album", {}).get("cover_xl") or track.get("album", {}).get("cover_medium"),
                         "preview": track.get("preview"),
