@@ -152,3 +152,11 @@ async def get_random_song(
         "duration": 268,
         "deezerUrl": "https://music.apple.com/us/album/kesariya/1634898160?i=1634898161"
     }
+
+# Mount static frontend for Render / single-container deployment
+import os
+from fastapi.staticfiles import StaticFiles
+
+if os.path.exists("public"):
+    app.mount("/", StaticFiles(directory="public", html=True), name="public")
+
