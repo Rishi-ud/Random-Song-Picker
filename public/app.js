@@ -422,12 +422,28 @@ function onSongReceived(song) {
   updateStatsUI();
 }
 
-// iTunes genre names that indicate a Hindi / Indian track
 const HINDI_GENRE_NAMES = new Set([
   'bollywood', 'indian pop', 'filmi', 'sufi & ghazal', 'indian classical',
   'regional indian music', 'devotional & spiritual', 'ghazals', 'bhangra',
   'punjabi pop', 'folk', 'carnatic classical', 'hindustani classical'
 ]);
+
+const PUNJABI_ARTISTS = [
+  "Diljit Dosanjh", "Karan Aujla", "AP Dhillon", "Sidhu Moose Wala", "Shubh", 
+  "Harrdy Sandhu", "Guru Randhawa", "Ammy Virk", "B Praak", "Garry Sandhu"
+];
+const HARYANVI_ARTISTS = [
+  "Fazilpuria", "Renuka Panwar", "MD KD", "Sapna Choudhary", 
+  "Gulzaar Chhaniwala", "Raju Punjabi", "Vikas Kumar"
+];
+const DESI_ARTISTS = [
+  "Divine", "Naezy", "KRSNA", "Seedhe Maut", "MC Stan", "Talha Anjum",
+  "Emiway Bantai", "Raftaar", "Fotty Seven", "Moksh"
+];
+const CHAOS_TERMS = [
+  "skrillex", "hardstyle", "electronic bass boost", "phonk", "crazy frog",
+  "dubstep banger", "heavy metal slipknot", "techno mix", "hardcore edm", "doom eternal soundtrack"
+];
 
 function isHindiTrack(track) {
   const g = (track.primaryGenreName || '').toLowerCase();
@@ -438,16 +454,25 @@ function isHindiTrack(track) {
 async function fetchDirectDeezerOrMock(genreKey, langKey, isPureWildcard, moodKey) {
   try {
     let query = 'top hits';
+    const selectedMode = DOM.modeSelect.value;
 
     // If mood is selected, prioritize mood keywords
-    if (moodKey && moodKey !== 'any') {
-      const moodPool = langKey === 'hindi' ? MOOD_KEYWORDS_HINDI : MOOD_KEYWORDS;
+    if (selectedMode === 'chaos') {
+      query = CHAOS_TERMS[Math.floor(Math.random() * CHAOS_TERMS.length)];
+    } else if (moodKey && moodKey !== 'any') {
+      const moodPool = ['hindi', 'punjabi', 'haryanvi', 'desi'].includes(langKey) ? MOOD_KEYWORDS_HINDI : MOOD_KEYWORDS;
       if (moodPool[moodKey]) {
         query = moodPool[moodKey][Math.floor(Math.random() * moodPool[moodKey].length)];
       }
     } else if (isPureWildcard) {
       const wildcardTerms = ['arijit singh', 'the weeknd', 'dua lipa', 'prateek kuhad', 'coldplay', 'bollywood', 'taylor swift', 'diljit dosanjh', 'drake', 'ar rahman'];
       query = wildcardTerms[Math.floor(Math.random() * wildcardTerms.length)];
+    } else if (langKey === 'punjabi') {
+      query = PUNJABI_ARTISTS[Math.floor(Math.random() * PUNJABI_ARTISTS.length)];
+    } else if (langKey === 'haryanvi') {
+      query = HARYANVI_ARTISTS[Math.floor(Math.random() * HARYANVI_ARTISTS.length)];
+    } else if (langKey === 'desi') {
+      query = DESI_ARTISTS[Math.floor(Math.random() * DESI_ARTISTS.length)];
     } else if (langKey === 'hindi') {
       const hindiTerms = ['bollywood hits', 'hindi pop', 'arijit singh', 'prateek kuhad', 'diljit dosanjh', 'indian indie', 'desi hip hop'];
       query = genreKey !== 'all' ? `hindi ${genreKey}` : hindiTerms[Math.floor(Math.random() * hindiTerms.length)];
@@ -458,14 +483,14 @@ async function fetchDirectDeezerOrMock(genreKey, langKey, isPureWildcard, moodKe
     }
 
     // Use country param to bias iTunes store (IN = more Bollywood, US = more English)
-    const country = langKey === 'hindi' ? 'in' : (langKey === 'english' ? 'us' : 'us');
+    const country = langKey === 'english' ? 'us' : 'in';
     const res = await fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(query)}&entity=song&limit=50&country=${country}`);
     if (res.ok) {
       const data = await res.json();
       let results = (data.results || []).filter(t => t.previewUrl);
 
       // Language filter by primaryGenreName
-      if (langKey === 'hindi') {
+      if (['hindi', 'punjabi', 'haryanvi', 'desi'].includes(langKey)) {
         const langFiltered = results.filter(t => isHindiTrack(t));
         if (langFiltered.length > 0) results = langFiltered;
       } else if (langKey === 'english') {

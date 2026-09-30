@@ -57,6 +57,26 @@ WILDCARD_TERMS = HINDI_ARTISTS + ENGLISH_ARTISTS + [
     "yaari", "zindagi", "safar", "roshni", "wild", "shadow", "gold", "electric"
 ]
 
+PUNJABI_ARTISTS = [
+    "Diljit Dosanjh", "Karan Aujla", "AP Dhillon", "Sidhu Moose Wala", "Shubh", 
+    "Harrdy Sandhu", "Guru Randhawa", "Ammy Virk", "B Praak", "Garry Sandhu"
+]
+
+HARYANVI_ARTISTS = [
+    "Fazilpuria", "Renuka Panwar", "MD KD", "Sapna Choudhary", 
+    "Gulzaar Chhaniwala", "Raju Punjabi", "Vikas Kumar"
+]
+
+DESI_ARTISTS = [
+    "Divine", "Naezy", "KRSNA", "Seedhe Maut", "MC Stan", "Talha Anjum",
+    "Emiway Bantai", "Raftaar", "Fotty Seven", "Moksh"
+]
+
+CHAOS_TERMS = [
+    "skrillex", "hardstyle", "electronic bass boost", "phonk", "crazy frog",
+    "dubstep banger", "heavy metal slipknot", "techno mix", "hardcore edm", "doom eternal soundtrack"
+]
+
 # Mood / Vibe keyword mappings
 MOOD_KEYWORDS = {
     "chill": ["chill vibes", "lo-fi", "relaxing music", "calm acoustic", "ambient chill", "soft beats"],
@@ -107,17 +127,25 @@ async def get_random_song(
     # 1. Determine Language pool
     target_lang = language.lower()
     if target_lang == "all":
-        target_lang = random.choice(["hindi", "english"])
+        target_lang = random.choice(["hindi", "english", "punjabi", "haryanvi", "desi"])
 
     # iTunes country bias: IN store has more Bollywood, US store has more English
-    itunes_country = "in" if target_lang == "hindi" else "us"
+    itunes_country = "us" if target_lang == "english" else "in"
 
-    # 2. Select Search Query — mood takes priority when specified
-    if mood != "any" and mood in MOOD_KEYWORDS:
-        mood_pool = MOOD_KEYWORDS_HINDI if target_lang == "hindi" else MOOD_KEYWORDS
+    # 2. Select Search Query — mode/mood takes priority
+    if mode == "chaos":
+        query = random.choice(CHAOS_TERMS)
+    elif mood != "any" and mood in MOOD_KEYWORDS:
+        mood_pool = MOOD_KEYWORDS_HINDI if target_lang in ["hindi", "punjabi", "haryanvi", "desi"] else MOOD_KEYWORDS
         query = random.choice(mood_pool[mood])
     elif mode == "wildcard":
         query = random.choice(WILDCARD_TERMS)
+    elif target_lang == "punjabi":
+        query = random.choice(PUNJABI_ARTISTS)
+    elif target_lang == "haryanvi":
+        query = random.choice(HARYANVI_ARTISTS)
+    elif target_lang == "desi":
+        query = random.choice(DESI_ARTISTS)
     elif mode == "deepcuts":
         query = random.choice(HINDI_ARTISTS if target_lang == "hindi" else ENGLISH_ARTISTS)
     else:
@@ -143,7 +171,7 @@ async def get_random_song(
                 valid_tracks = [t for t in results if t.get("previewUrl")]
 
                 # Step 2: filter by language using primaryGenreName
-                if target_lang == "hindi":
+                if target_lang in ["hindi", "punjabi", "haryanvi", "desi"]:
                     lang_filtered = [t for t in valid_tracks if is_hindi_track(t)]
                 elif target_lang == "english":
                     lang_filtered = [t for t in valid_tracks if is_english_track(t)]
@@ -156,7 +184,15 @@ async def get_random_song(
                 if final_tracks:
                     track = random.choice(final_tracks)
                     cover_url = track.get("artworkUrl100", "").replace("100x100bb", "600x600bb")
-                    lang_label = "🇮🇳 HINDI" if target_lang == "hindi" else "🇬🇧 ENGLISH"
+                    
+                    lang_map = {
+                        "hindi": "🇮🇳 HINDI",
+                        "english": "🇬🇧 ENGLISH",
+                        "punjabi": "🌾 PUNJABI",
+                        "haryanvi": "🚜 HARYANVI",
+                        "desi": "🔥 DESI"
+                    }
+                    lang_label = lang_map.get(target_lang, "🎶")
                     return {
                         "id": str(track.get("trackId")),
                         "title": track.get("trackName"),
