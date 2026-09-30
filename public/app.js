@@ -134,9 +134,9 @@ const DOM = {
   shareBtn: document.getElementById('share-btn'),
   
   languageSelect: document.getElementById('language-select'),
-  genreSelect: document.getElementById('genre-select'),
   modeSelect: document.getElementById('mode-select'),
-  moodSelect: document.getElementById('mood-select'),
+  genreSelect: document.getElementById('genre-select'),  // hidden input
+  moodSelect: document.getElementById('mood-select'),    // hidden input
   
   favoritesToggleBtn: document.getElementById('favorites-toggle-btn'),
   favoritesDrawer: document.getElementById('favorites-drawer'),
@@ -230,6 +230,46 @@ function setupEventListeners() {
 
   // Keyboard Navigation (extended shortcuts)
   document.addEventListener('keydown', handleKeyboard);
+
+  // Genre / Mood Tab Switcher
+  document.querySelectorAll('.filter-tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+      const targetTab = tab.dataset.tab; // 'genre' or 'mood'
+
+      // Update tab active state
+      document.querySelectorAll('.filter-tab').forEach(t => t.classList.remove('active'));
+      tab.classList.add('active');
+
+      // Show/hide panels
+      document.getElementById('panel-genre').classList.toggle('hidden', targetTab !== 'genre');
+      document.getElementById('panel-mood').classList.toggle('hidden', targetTab !== 'mood');
+
+      // Reset the inactive filter to its default
+      if (targetTab === 'genre') {
+        DOM.moodSelect.value = 'any';
+        document.querySelectorAll('#panel-mood .filter-pill').forEach((p, i) => p.classList.toggle('active', i === 0));
+      } else {
+        DOM.genreSelect.value = 'all';
+        document.querySelectorAll('#panel-genre .filter-pill').forEach((p, i) => p.classList.toggle('active', i === 0));
+      }
+    });
+  });
+
+  // Filter Pills
+  document.querySelectorAll('.filter-pill').forEach(pill => {
+    pill.addEventListener('click', () => {
+      const type = pill.dataset.type;   // 'genre' or 'mood'
+      const value = pill.dataset.value;
+
+      // Update active pill in this panel
+      document.querySelectorAll(`#panel-${type} .filter-pill`).forEach(p => p.classList.remove('active'));
+      pill.classList.add('active');
+
+      // Write value to the hidden input
+      if (type === 'genre') DOM.genreSelect.value = value;
+      if (type === 'mood') DOM.moodSelect.value = value;
+    });
+  });
 }
 
 function handleKeyboard(e) {

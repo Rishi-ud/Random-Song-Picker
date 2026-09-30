@@ -257,6 +257,12 @@ button {
 /* Filter Section */
 .filters-section {
   display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.filters-row-top {
+  display: flex;
   gap: 16px;
   flex-wrap: wrap;
 }
@@ -306,6 +312,106 @@ button {
   background: #161b2e;
   color: var(--text-main);
 }
+
+/* Genre / Mood Tab Switcher */
+.filter-switcher {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  padding: 0;
+  overflow: hidden;
+}
+
+.filter-tab-bar {
+  display: flex;
+  border-bottom: 1px solid var(--panel-border);
+}
+
+.filter-tab {
+  flex: 1;
+  padding: 12px 16px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  font-family: inherit;
+  color: var(--text-muted);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: var(--transition-fast);
+  position: relative;
+}
+
+.filter-tab::after {
+  content: '';
+  position: absolute;
+  bottom: -1px;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: var(--accent-gradient);
+  transform: scaleX(0);
+  transition: transform 0.25s ease;
+  border-radius: 2px 2px 0 0;
+}
+
+.filter-tab:hover {
+  color: var(--text-main);
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.filter-tab.active {
+  color: var(--text-main);
+  background: rgba(139, 92, 246, 0.08);
+}
+
+.filter-tab.active::after {
+  transform: scaleX(1);
+}
+
+/* Pills Panel */
+.filter-pills-panel {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 16px;
+}
+
+.filter-pills-panel.hidden {
+  display: none;
+}
+
+.filter-pill {
+  padding: 8px 16px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  font-family: inherit;
+  border-radius: 20px;
+  border: 1px solid var(--panel-border);
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: var(--transition-fast);
+  white-space: nowrap;
+}
+
+.filter-pill:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: var(--text-main);
+  border-color: rgba(255, 255, 255, 0.2);
+  transform: translateY(-1px);
+}
+
+.filter-pill.active {
+  background: var(--accent-gradient);
+  color: #fff;
+  border-color: transparent;
+  box-shadow: 0 4px 15px -4px rgba(139, 92, 246, 0.5);
+}
+
 
 /* Song Card & Glassmorphism */
 .glass-panel {

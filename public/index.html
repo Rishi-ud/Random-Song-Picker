@@ -55,56 +55,70 @@
     <main class="main-content">
       <!-- Filter Bar -->
       <section class="filters-section">
-        <!-- Language Filter -->
-        <div class="filter-group">
-          <label for="language-select"><i class="fa-solid fa-earth-americas"></i> Language</label>
-          <select id="language-select" class="custom-select">
-            <option value="all">🌐 Any Language (Mixed)</option>
-            <option value="hindi">🇮🇳 Hindi (Bollywood & Indie)</option>
-            <option value="english">🇬🇧 / 🇺🇸 English (Global Hits)</option>
-          </select>
+        <!-- Row 1: Always-visible filters -->
+        <div class="filters-row-top">
+          <!-- Language Filter -->
+          <div class="filter-group">
+            <label for="language-select"><i class="fa-solid fa-earth-americas"></i> Language</label>
+            <select id="language-select" class="custom-select">
+              <option value="all">🌐 Any Language</option>
+              <option value="hindi">🇮🇳 Hindi / Bollywood</option>
+              <option value="english">🇬🇧 English / Global</option>
+            </select>
+          </div>
+
+          <!-- Mode Filter -->
+          <div class="filter-group">
+            <label for="mode-select"><i class="fa-solid fa-shuffle"></i> Mode</label>
+            <select id="mode-select" class="custom-select">
+              <option value="chart">🔥 Top Hits & Charts</option>
+              <option value="deepcuts">🎯 Underground / Deep Cuts</option>
+              <option value="wildcard">🎲 Pure Wildcard</option>
+            </select>
+          </div>
         </div>
 
-        <!-- Genre Filter -->
-        <div class="filter-group">
-          <label for="genre-select"><i class="fa-solid fa-sliders"></i> Genre</label>
-          <select id="genre-select" class="custom-select">
-            <option value="all">All Genres</option>
-            <option value="pop">Pop / Bollywood Pop</option>
-            <option value="rock">Rock / Indian Rock</option>
-            <option value="hiphop">Hip-Hop / Desi Rap</option>
-            <option value="dance">Dance / Party Remixes</option>
-            <option value="indie">Indie / Acoustic</option>
-            <option value="rnb">R&B / Soul / Romantic</option>
-            <option value="jazz">Jazz / Unplugged</option>
-            <option value="classical">Classical / Sufi / Orchestra</option>
-          </select>
+        <!-- Row 2: Genre OR Mood switcher -->
+        <div class="filter-switcher glass-panel">
+          <!-- Tab Toggle -->
+          <div class="filter-tab-bar">
+            <button class="filter-tab active" id="tab-genre" data-tab="genre">
+              <i class="fa-solid fa-sliders"></i> By Genre
+            </button>
+            <button class="filter-tab" id="tab-mood" data-tab="mood">
+              <i class="fa-solid fa-face-smile"></i> By Mood
+            </button>
+          </div>
+
+          <!-- Genre Pills -->
+          <div class="filter-pills-panel" id="panel-genre">
+            <button class="filter-pill active" data-value="all" data-type="genre">🎵 All</button>
+            <button class="filter-pill" data-value="pop" data-type="genre">🎤 Pop</button>
+            <button class="filter-pill" data-value="rock" data-type="genre">🎸 Rock</button>
+            <button class="filter-pill" data-value="hiphop" data-type="genre">🎧 Hip-Hop</button>
+            <button class="filter-pill" data-value="dance" data-type="genre">💃 Dance</button>
+            <button class="filter-pill" data-value="indie" data-type="genre">🌿 Indie</button>
+            <button class="filter-pill" data-value="rnb" data-type="genre">💎 R&B / Soul</button>
+            <button class="filter-pill" data-value="jazz" data-type="genre">🎷 Jazz</button>
+            <button class="filter-pill" data-value="classical" data-type="genre">🎻 Classical / Sufi</button>
+          </div>
+
+          <!-- Mood Pills -->
+          <div class="filter-pills-panel hidden" id="panel-mood">
+            <button class="filter-pill active" data-value="any" data-type="mood">🎵 Any</button>
+            <button class="filter-pill" data-value="chill" data-type="mood">🌙 Chill</button>
+            <button class="filter-pill" data-value="hype" data-type="mood">🔥 Hype</button>
+            <button class="filter-pill" data-value="sad" data-type="mood">💔 Sad</button>
+            <button class="filter-pill" data-value="romantic" data-type="mood">💕 Romantic</button>
+            <button class="filter-pill" data-value="workout" data-type="mood">💪 Workout</button>
+            <button class="filter-pill" data-value="study" data-type="mood">📚 Study</button>
+            <button class="filter-pill" data-value="party" data-type="mood">🎉 Party</button>
+          </div>
         </div>
 
-        <!-- Mode Filter -->
-        <div class="filter-group">
-          <label for="mode-select"><i class="fa-solid fa-shuffle"></i> Mode</label>
-          <select id="mode-select" class="custom-select">
-            <option value="chart">Top Hits & Charts</option>
-            <option value="deepcuts">Underground / Deep Cuts</option>
-            <option value="wildcard">Pure Wildcard</option>
-          </select>
-        </div>
-
-        <!-- Mood Filter (NEW) -->
-        <div class="filter-group">
-          <label for="mood-select"><i class="fa-solid fa-face-smile"></i> Mood</label>
-          <select id="mood-select" class="custom-select">
-            <option value="any">🎵 Any Mood</option>
-            <option value="chill">🌙 Chill & Relaxed</option>
-            <option value="hype">🔥 Hype & Energetic</option>
-            <option value="sad">💔 Sad & Emotional</option>
-            <option value="romantic">💕 Romantic & Love</option>
-            <option value="workout">💪 Workout & Pump</option>
-            <option value="study">📚 Study & Focus</option>
-            <option value="party">🎉 Party & Dance</option>
-          </select>
-        </div>
+        <!-- Hidden inputs to keep JS compatibility -->
+        <input type="hidden" id="genre-select" value="all">
+        <input type="hidden" id="mood-select" value="any">
       </section>
 
       <!-- Player Card Container -->
