@@ -375,6 +375,18 @@ function onSongReceived(song) {
   updateStatsUI();
 }
 
+// iTunes genre names that indicate a Hindi / Indian track
+const HINDI_GENRE_NAMES = new Set([
+  'bollywood', 'indian pop', 'filmi', 'sufi & ghazal', 'indian classical',
+  'regional indian music', 'devotional & spiritual', 'ghazals', 'bhangra',
+  'punjabi pop', 'folk', 'carnatic classical', 'hindustani classical'
+]);
+
+function isHindiTrack(track) {
+  const g = (track.primaryGenreName || '').toLowerCase();
+  return [...HINDI_GENRE_NAMES].some(h => g.includes(h));
+}
+
 // Direct iTunes Fetch or Mock Fallback for Standalone Frontend Preview
 async function fetchDirectDeezerOrMock(genreKey, langKey, isPureWildcard, moodKey) {
   try {
@@ -398,10 +410,21 @@ async function fetchDirectDeezerOrMock(genreKey, langKey, isPureWildcard, moodKe
       query = genreKey !== 'all' ? genreKey : 'top hits';
     }
 
-    const res = await fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(query)}&entity=song&limit=40`);
+    // Use country param to bias iTunes store (IN = more Bollywood, US = more English)
+    const country = langKey === 'hindi' ? 'in' : (langKey === 'english' ? 'us' : 'us');
+    const res = await fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(query)}&entity=song&limit=50&country=${country}`);
     if (res.ok) {
       const data = await res.json();
       let results = (data.results || []).filter(t => t.previewUrl);
+
+      // Language filter by primaryGenreName
+      if (langKey === 'hindi') {
+        const langFiltered = results.filter(t => isHindiTrack(t));
+        if (langFiltered.length > 0) results = langFiltered;
+      } else if (langKey === 'english') {
+        const langFiltered = results.filter(t => !isHindiTrack(t));
+        if (langFiltered.length > 0) results = langFiltered;
+      }
 
       // No-repeat filter
       if (state.noRepeat) {

@@ -93,11 +93,28 @@ async def get_random_song(
     Fetch a random song with audio preview, supporting Hindi & English languages and mood filters.
     """
     headers = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"}
-    
+
+    # iTunes genre names that indicate Hindi / Indian music
+    HINDI_GENRES = {
+        "bollywood", "indian pop", "filmi", "sufi & ghazal", "indian classical",
+        "regional indian music", "devotional & spiritual", "ghazals", "bhangra",
+        "punjabi pop", "folk", "carnatic classical", "hindustani classical"
+    }
+
+    def is_hindi_track(track: dict) -> bool:
+        g = (track.get("primaryGenreName") or "").lower()
+        return any(h in g for h in HINDI_GENRES)
+
+    def is_english_track(track: dict) -> bool:
+        return not is_hindi_track(track)
+
     # 1. Determine Language pool
     target_lang = language.lower()
     if target_lang == "all":
         target_lang = random.choice(["hindi", "english"])
+
+    # iTunes country bias: IN store has more Bollywood, US store has more English
+    itunes_country = "in" if target_lang == "hindi" else "us"
 
     # 2. Select Search Query — mood takes priority when specified
     if mood != "any" and mood in MOOD_KEYWORDS:
@@ -118,13 +135,30 @@ async def get_random_song(
     async with httpx.AsyncClient(headers=headers, timeout=8.0) as client:
         # Try iTunes Search API
         try:
-            url = f"https://itunes.apple.com/search?term={query}&entity=song&limit=40"
+            url = (
+                f"https://itunes.apple.com/search"
+                f"?term={query}&entity=song&limit=50&country={itunes_country}"
+            )
             resp = await client.get(url)
             if resp.status_code == 200:
                 results = resp.json().get("results", [])
+
+                # Step 1: must have a preview URL
                 valid_tracks = [t for t in results if t.get("previewUrl")]
-                if valid_tracks:
-                    track = random.choice(valid_tracks)
+
+                # Step 2: filter by language using primaryGenreName
+                if target_lang == "hindi":
+                    lang_filtered = [t for t in valid_tracks if is_hindi_track(t)]
+                elif target_lang == "english":
+                    lang_filtered = [t for t in valid_tracks if is_english_track(t)]
+                else:
+                    lang_filtered = valid_tracks
+
+                # Fall back to unfiltered if filter was too strict
+                final_tracks = lang_filtered if lang_filtered else valid_tracks
+
+                if final_tracks:
+                    track = random.choice(final_tracks)
                     cover_url = track.get("artworkUrl100", "").replace("100x100bb", "600x600bb")
                     lang_label = "🇮🇳 HINDI" if target_lang == "hindi" else "🇬🇧 ENGLISH"
                     return {
