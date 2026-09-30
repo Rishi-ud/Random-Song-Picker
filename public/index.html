@@ -4,6 +4,11 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>TuneTragedy - Random Song Picker</title>
+  <meta name="description" content="Discover random Hindi & English songs with TuneTragedy. Filter by genre, language, and mood. Preview tracks, save favorites, and share your discoveries.">
+  <meta property="og:title" content="TuneTragedy - Random Song Picker">
+  <meta property="og:description" content="Discover your next favorite song — randomly. Hindi, English, every mood.">
+  <meta property="og:type" content="website">
+  <meta name="twitter:card" content="summary_large_image">
   <!-- Google Fonts & FontAwesome Icons -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -12,11 +17,17 @@
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
+  <!-- Confetti Canvas -->
+  <canvas id="confetti-canvas"></canvas>
+
   <div class="background-blobs">
     <div class="blob blob-1"></div>
     <div class="blob blob-2"></div>
     <div class="blob blob-3"></div>
   </div>
+
+  <!-- Toast Notification Container -->
+  <div class="toast-container" id="toast-container"></div>
 
   <div class="app-container">
     <!-- Header -->
@@ -25,10 +36,19 @@
         <i class="fa-solid fa-compact-disc logo-icon"></i>
         <span>Tune<span class="highlight">Tragedy</span></span>
       </div>
-      <button id="favorites-toggle-btn" class="btn-secondary btn-icon-text">
-        <i class="fa-solid fa-heart"></i>
-        <span>Saved (<span id="fav-count">0</span>)</span>
-      </button>
+      <div class="header-actions">
+        <button id="shortcuts-btn" class="btn-secondary btn-icon-only btn-small" title="Keyboard Shortcuts">
+          <i class="fa-solid fa-keyboard"></i>
+        </button>
+        <button id="history-toggle-btn" class="btn-secondary btn-icon-text" title="Song History">
+          <i class="fa-solid fa-clock-rotate-left"></i>
+          <span>History (<span id="history-count">0</span>)</span>
+        </button>
+        <button id="favorites-toggle-btn" class="btn-secondary btn-icon-text">
+          <i class="fa-solid fa-heart"></i>
+          <span>Saved (<span id="fav-count">0</span>)</span>
+        </button>
+      </div>
     </header>
 
     <!-- Main Content -->
@@ -70,6 +90,21 @@
             <option value="wildcard">Pure Wildcard</option>
           </select>
         </div>
+
+        <!-- Mood Filter (NEW) -->
+        <div class="filter-group">
+          <label for="mood-select"><i class="fa-solid fa-face-smile"></i> Mood</label>
+          <select id="mood-select" class="custom-select">
+            <option value="any">🎵 Any Mood</option>
+            <option value="chill">🌙 Chill & Relaxed</option>
+            <option value="hype">🔥 Hype & Energetic</option>
+            <option value="sad">💔 Sad & Emotional</option>
+            <option value="romantic">💕 Romantic & Love</option>
+            <option value="workout">💪 Workout & Pump</option>
+            <option value="study">📚 Study & Focus</option>
+            <option value="party">🎉 Party & Dance</option>
+          </select>
+        </div>
       </section>
 
       <!-- Player Card Container -->
@@ -86,6 +121,10 @@
               </div>
             </div>
             <img src="https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=600&auto=format&fit=crop" id="album-cover" class="album-cover" alt="Album Cover">
+            <!-- Skeleton Loading State -->
+            <div class="skeleton-overlay" id="skeleton-overlay">
+              <div class="skeleton-art"></div>
+            </div>
             <div class="loading-overlay" id="loading-overlay">
               <div class="spinner"></div>
               <p>Finding a fresh vibe...</p>
@@ -120,9 +159,20 @@
                   <i class="fa-solid fa-play" id="play-icon"></i>
                 </button>
 
-                <div class="volume-control">
-                  <i class="fa-solid fa-volume-high" id="volume-icon"></i>
-                  <input type="range" id="volume-slider" min="0" max="1" step="0.01" value="0.8">
+                <div class="player-controls-right">
+                  <!-- Auto-Play Toggle (NEW) -->
+                  <div class="auto-play-toggle" title="Auto-play next song when preview ends">
+                    <label class="toggle-switch">
+                      <input type="checkbox" id="auto-play-toggle">
+                      <span class="toggle-slider"></span>
+                    </label>
+                    <span class="toggle-label" id="auto-play-label">Auto</span>
+                  </div>
+
+                  <div class="volume-control">
+                    <i class="fa-solid fa-volume-high" id="volume-icon"></i>
+                    <input type="range" id="volume-slider" min="0" max="1" step="0.01" value="0.8">
+                  </div>
                 </div>
               </div>
             </div>
@@ -159,9 +209,40 @@
           <span>Pure Random Song</span>
         </button>
 
-        <button id="favorite-btn" class="btn-secondary btn-icon-only" title="Save to Favorites">
+        <button id="favorite-btn" class="btn-secondary btn-icon-only" title="Save to Favorites [F]">
           <i class="fa-regular fa-heart" id="fav-icon"></i>
         </button>
+
+        <!-- Share Button (NEW) -->
+        <button id="share-btn" class="btn-secondary btn-icon-only" title="Share Song [S]">
+          <i class="fa-solid fa-share-nodes"></i>
+        </button>
+      </section>
+
+      <!-- Discovery Stats Bar (NEW) -->
+      <section class="stats-bar glass-panel">
+        <div class="stat-item">
+          <i class="fa-solid fa-music"></i>
+          <span><strong id="stat-discovered">0</strong> discovered</span>
+        </div>
+        <div class="stat-divider"></div>
+        <div class="stat-item">
+          <i class="fa-solid fa-heart"></i>
+          <span><strong id="stat-favorites">0</strong> saved</span>
+        </div>
+        <div class="stat-divider"></div>
+        <div class="stat-item">
+          <i class="fa-solid fa-ban"></i>
+          <span><strong id="stat-skipped">0</strong> unique songs seen</span>
+        </div>
+        <div class="stat-divider"></div>
+        <div class="stat-item no-repeat-toggle">
+          <label class="toggle-switch toggle-small">
+            <input type="checkbox" id="no-repeat-toggle" checked>
+            <span class="toggle-slider"></span>
+          </label>
+          <span class="toggle-label">No Repeats</span>
+        </div>
       </section>
     </main>
 
@@ -180,8 +261,80 @@
       </div>
     </aside>
 
+    <!-- History Drawer (NEW) -->
+    <aside class="history-drawer" id="history-drawer">
+      <div class="drawer-header">
+        <h3><i class="fa-solid fa-clock-rotate-left text-cyan"></i> Song History</h3>
+        <div class="drawer-header-actions">
+          <button id="clear-history-btn" class="btn-secondary btn-small" title="Clear History">
+            <i class="fa-solid fa-trash"></i> Clear
+          </button>
+          <button id="close-history-btn" class="btn-icon-only"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+      </div>
+      <div class="drawer-body" id="history-list">
+        <div class="empty-state">
+          <i class="fa-solid fa-clock-rotate-left"></i>
+          <p>No history yet. Start picking songs to build your discovery timeline!</p>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Keyboard Shortcuts Overlay (NEW) -->
+    <div class="shortcuts-overlay" id="shortcuts-overlay">
+      <div class="shortcuts-modal glass-panel">
+        <div class="shortcuts-header">
+          <h3><i class="fa-solid fa-keyboard"></i> Keyboard Shortcuts</h3>
+          <button id="close-shortcuts-btn" class="btn-icon-only"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <div class="shortcuts-body">
+          <div class="shortcut-row">
+            <kbd>Space</kbd>
+            <span>Pick filtered song</span>
+          </div>
+          <div class="shortcut-row">
+            <kbd>N</kbd>
+            <span>Pick next random song</span>
+          </div>
+          <div class="shortcut-row">
+            <kbd>P</kbd>
+            <span>Play / Pause preview</span>
+          </div>
+          <div class="shortcut-row">
+            <kbd>F</kbd>
+            <span>Toggle favorite</span>
+          </div>
+          <div class="shortcut-row">
+            <kbd>S</kbd>
+            <span>Share current song</span>
+          </div>
+          <div class="shortcut-row">
+            <kbd>H</kbd>
+            <span>Open history</span>
+          </div>
+          <div class="shortcut-row">
+            <kbd>A</kbd>
+            <span>Toggle auto-play</span>
+          </div>
+          <div class="shortcut-row">
+            <kbd>?</kbd>
+            <span>Show / hide shortcuts</span>
+          </div>
+          <div class="shortcut-row">
+            <kbd>Esc</kbd>
+            <span>Close panels</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <div class="drawer-backdrop" id="drawer-backdrop"></div>
   </div>
+
+  <!-- Footer (NEW) -->
+  <footer class="app-footer">
+    <p>Made with <i class="fa-solid fa-heart text-danger"></i> & <i class="fa-solid fa-music"></i> — <strong>TuneTragedy</strong></p>
+  </footer>
 
   <script src="app.js"></script>
 </body>

@@ -57,18 +57,40 @@ WILDCARD_TERMS = HINDI_ARTISTS + ENGLISH_ARTISTS + [
     "yaari", "zindagi", "safar", "roshni", "wild", "shadow", "gold", "electric"
 ]
 
+# Mood / Vibe keyword mappings
+MOOD_KEYWORDS = {
+    "chill": ["chill vibes", "lo-fi", "relaxing music", "calm acoustic", "ambient chill", "soft beats"],
+    "hype": ["hype music", "energetic hits", "pump up songs", "adrenaline music", "bass boost"],
+    "sad": ["sad songs", "heartbreak music", "emotional ballads", "melancholy", "crying songs"],
+    "romantic": ["romantic songs", "love songs", "romance ballad", "couple songs", "serenade"],
+    "workout": ["workout music", "gym motivation", "running music", "power workout", "beast mode"],
+    "study": ["study music", "focus beats", "concentration music", "ambient study", "piano focus"],
+    "party": ["party hits", "club bangers", "dance party", "party anthem", "friday night"]
+}
+
+MOOD_KEYWORDS_HINDI = {
+    "chill": ["chill bollywood", "soft hindi songs", "anuv jain chill", "prateek kuhad soft"],
+    "hype": ["bollywood party", "badshah hype", "honey singh party", "desi bass"],
+    "sad": ["sad bollywood", "arijit singh sad", "heartbreak hindi", "dard bhare gaane"],
+    "romantic": ["romantic bollywood", "arijit singh love", "hindi love songs", "bollywood romance"],
+    "workout": ["bollywood workout", "hindi gym songs", "pump hindi", "desi workout"],
+    "study": ["bollywood instrumental", "hindi lo-fi", "peaceful hindi", "flute indian"],
+    "party": ["bollywood party hits", "badshah party", "punjabi party", "hindi dance hits"]
+}
+
 @app.get("/api/health")
 def health_check():
-    return {"status": "ok", "service": "TuneTragedy Backend v2.0"}
+    return {"status": "ok", "service": "TuneTragedy Backend v2.1"}
 
 @app.get("/api/random-song")
 async def get_random_song(
     genre: str = Query("all", description="Genre filter"),
     language: str = Query("all", description="Language filter: hindi, english, or all"),
-    mode: str = Query("chart", description="Discovery mode: chart, deepcuts, or wildcard")
+    mode: str = Query("chart", description="Discovery mode: chart, deepcuts, or wildcard"),
+    mood: str = Query("any", description="Mood/vibe filter: chill, hype, sad, romantic, workout, study, party")
 ):
     """
-    Fetch a random song with audio preview, supporting Hindi & English languages.
+    Fetch a random song with audio preview, supporting Hindi & English languages and mood filters.
     """
     headers = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"}
     
@@ -77,8 +99,11 @@ async def get_random_song(
     if target_lang == "all":
         target_lang = random.choice(["hindi", "english"])
 
-    # 2. Select Search Query
-    if mode == "wildcard":
+    # 2. Select Search Query — mood takes priority when specified
+    if mood != "any" and mood in MOOD_KEYWORDS:
+        mood_pool = MOOD_KEYWORDS_HINDI if target_lang == "hindi" else MOOD_KEYWORDS
+        query = random.choice(mood_pool[mood])
+    elif mode == "wildcard":
         query = random.choice(WILDCARD_TERMS)
     elif mode == "deepcuts":
         query = random.choice(HINDI_ARTISTS if target_lang == "hindi" else ENGLISH_ARTISTS)
