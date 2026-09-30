@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TuneTragedy - Random Song Picker</title>
+  <!-- Google Fonts & FontAwesome Icons -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="background-blobs">
+    <div class="blob blob-1"></div>
+    <div class="blob blob-2"></div>
+    <div class="blob blob-3"></div>
+  </div>
+
+  <div class="app-container">
+    <!-- Header -->
+    <header class="app-header">
+      <div class="logo">
+        <i class="fa-solid fa-compact-disc logo-icon"></i>
+        <span>Tune<span class="highlight">Tragedy</span></span>
+      </div>
+      <button id="favorites-toggle-btn" class="btn-secondary btn-icon-text">
+        <i class="fa-solid fa-heart"></i>
+        <span>Saved (<span id="fav-count">0</span>)</span>
+      </button>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main-content">
+      <!-- Filter Bar -->
+      <section class="filters-section">
+        <!-- Language Filter -->
+        <div class="filter-group">
+          <label for="language-select"><i class="fa-solid fa-earth-americas"></i> Language</label>
+          <select id="language-select" class="custom-select">
+            <option value="all">🌐 Any Language (Mixed)</option>
+            <option value="hindi">🇮🇳 Hindi (Bollywood & Indie)</option>
+            <option value="english">🇬🇧 / 🇺🇸 English (Global Hits)</option>
+          </select>
+        </div>
+
+        <!-- Genre Filter -->
+        <div class="filter-group">
+          <label for="genre-select"><i class="fa-solid fa-sliders"></i> Genre</label>
+          <select id="genre-select" class="custom-select">
+            <option value="all">All Genres</option>
+            <option value="pop">Pop / Bollywood Pop</option>
+            <option value="rock">Rock / Indian Rock</option>
+            <option value="hiphop">Hip-Hop / Desi Rap</option>
+            <option value="dance">Dance / Party Remixes</option>
+            <option value="indie">Indie / Acoustic</option>
+            <option value="rnb">R&B / Soul / Romantic</option>
+            <option value="jazz">Jazz / Unplugged</option>
+            <option value="classical">Classical / Sufi / Orchestra</option>
+          </select>
+        </div>
+
+        <!-- Mode Filter -->
+        <div class="filter-group">
+          <label for="mode-select"><i class="fa-solid fa-shuffle"></i> Mode</label>
+          <select id="mode-select" class="custom-select">
+            <option value="chart">Top Hits & Charts</option>
+            <option value="deepcuts">Underground / Deep Cuts</option>
+            <option value="wildcard">Pure Wildcard</option>
+          </select>
+        </div>
+      </section>
+
+      <!-- Player Card Container -->
+      <section class="card-container">
+        <!-- Vinyl Record / Artwork Card -->
+        <div class="song-card glass-panel" id="song-card">
+
+          <!-- Album Art & Vinyl Spinning FX -->
+          <div class="album-art-wrapper">
+            <div class="vinyl-disc" id="vinyl-disc">
+              <div class="vinyl-grooves"></div>
+              <div class="vinyl-center">
+                <img src="https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=300&auto=format&fit=crop" id="vinyl-label" alt="Vinyl Label">
+              </div>
+            </div>
+            <img src="https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=600&auto=format&fit=crop" id="album-cover" class="album-cover" alt="Album Cover">
+            <div class="loading-overlay" id="loading-overlay">
+              <div class="spinner"></div>
+              <p>Finding a fresh vibe...</p>
+            </div>
+          </div>
+
+          <!-- Song Meta Details -->
+          <div class="song-info">
+            <div class="badge-row">
+              <span class="genre-badge" id="genre-badge">Pop Hits</span>
+              <span class="duration-badge" id="duration-badge"><i class="fa-regular fa-clock"></i> 3:45</span>
+            </div>
+            
+            <h1 class="song-title" id="song-title">Blinding Lights</h1>
+            <h2 class="artist-name" id="artist-name">The Weeknd</h2>
+            <p class="album-name" id="album-name"><i class="fa-solid fa-compact-disc"></i> After Hours</p>
+
+            <!-- Audio Player Controls -->
+            <div class="audio-player-container">
+              <audio id="audio-player" preload="metadata"></audio>
+              
+              <div class="time-scrubber">
+                <span id="current-time">0:00</span>
+                <div class="progress-bar-container" id="progress-container">
+                  <div class="progress-bar" id="progress-bar"></div>
+                </div>
+                <span id="total-time">0:30</span>
+              </div>
+
+              <div class="player-controls">
+                <button id="play-pause-btn" class="btn-circle btn-play" title="Play Preview">
+                  <i class="fa-solid fa-play" id="play-icon"></i>
+                </button>
+
+                <div class="volume-control">
+                  <i class="fa-solid fa-volume-high" id="volume-icon"></i>
+                  <input type="range" id="volume-slider" min="0" max="1" step="0.01" value="0.8">
+                </div>
+              </div>
+            </div>
+
+            <!-- External Streaming Platform Links -->
+            <div class="platform-links">
+              <span class="links-label">Listen full song on:</span>
+              <div class="links-buttons">
+                <a id="deezer-link" href="#" target="_blank" class="platform-btn deezer" title="Open on Deezer / Apple Music">
+                  <i class="fa-brands fa-deezer"></i> Deezer
+                </a>
+                <a id="spotify-link" href="#" target="_blank" class="platform-btn spotify" title="Search on Spotify">
+                  <i class="fa-brands fa-spotify"></i> Spotify
+                </a>
+                <a id="youtube-link" href="#" target="_blank" class="platform-btn youtube" title="Search on YouTube">
+                  <i class="fa-brands fa-youtube"></i> YouTube
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Action CTAs -->
+      <section class="actions-section">
+        <button id="pick-btn" class="btn-primary btn-hero">
+          <i class="fa-solid fa-wand-magic-sparkles"></i>
+          <span>Pick Filtered Song</span>
+          <span class="keyboard-hint">Press [Space]</span>
+        </button>
+
+        <button id="wildcard-btn" class="btn-secondary btn-hero-secondary" title="Pick Any Completely Random Song across All Genres & Languages">
+          <i class="fa-solid fa-dice"></i>
+          <span>Pure Random Song</span>
+        </button>
+
+        <button id="favorite-btn" class="btn-secondary btn-icon-only" title="Save to Favorites">
+          <i class="fa-regular fa-heart" id="fav-icon"></i>
+        </button>
+      </section>
+    </main>
+
+    <!-- Favorites Drawer / Sidebar Modal -->
+    <aside class="favorites-drawer" id="favorites-drawer">
+      <div class="drawer-header">
+        <h3><i class="fa-solid fa-heart text-danger"></i> Saved Songs</h3>
+        <button id="close-drawer-btn" class="btn-icon-only"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <div class="drawer-body" id="favorites-list">
+        <!-- Dynamic list of saved songs -->
+        <div class="empty-state">
+          <i class="fa-solid fa-music"></i>
+          <p>No saved songs yet! Pick a song and click the heart icon to save your favorites.</p>
+        </div>
+      </div>
+    </aside>
+
+    <div class="drawer-backdrop" id="drawer-backdrop"></div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
