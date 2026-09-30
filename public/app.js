@@ -412,9 +412,18 @@ function displaySong(song) {
   DOM.albumCover.src = song.cover;
   DOM.vinylLabel.src = song.cover;
 
-  // Set audio source
+  // Set audio source and auto-play
   DOM.audioPlayer.src = song.preview || '';
   DOM.audioPlayer.load();
+
+  // Auto-play as soon as the browser has enough data
+  if (song.preview) {
+    const onCanPlay = () => {
+      DOM.audioPlayer.removeEventListener('canplay', onCanPlay);
+      playAudio();
+    };
+    DOM.audioPlayer.addEventListener('canplay', onCanPlay);
+  }
 
   // Set External Links
   DOM.deezerLink.href = song.deezerUrl || `https://www.deezer.com/search/${encodeURIComponent(song.title + ' ' + song.artist)}`;
