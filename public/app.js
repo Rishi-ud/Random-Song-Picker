@@ -1,3 +1,9 @@
+// Backend API URL Configuration
+// If hosting backend on Render & frontend on Vercel, set your Render service URL here:
+const RENDER_BACKEND_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+  ? '' 
+  : 'https://tunetragedy.onrender.com'; // <--- Set your Render Web Service URL here!
+
 // State Management
 const state = {
   currentSong: null,
@@ -161,8 +167,8 @@ async function fetchRandomSong(isPureWildcard = false) {
   const selectedMode = isPureWildcard ? 'wildcard' : DOM.modeSelect.value;
 
   try {
-    // Attempt fetch from backend endpoint
-    const response = await fetch(`/api/random-song?genre=${selectedGenre}&language=${selectedLanguage}&mode=${selectedMode}`);
+    // Attempt fetch from backend endpoint (Render Web Service or local)
+    const response = await fetch(`${RENDER_BACKEND_URL}/api/random-song?genre=${selectedGenre}&language=${selectedLanguage}&mode=${selectedMode}`);
     if (!response.ok) throw new Error('Backend route not active yet');
     
     const songData = await response.json();
