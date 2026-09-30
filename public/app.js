@@ -2,7 +2,7 @@
 // If hosting backend on Render & frontend on Vercel, set your Render service URL here:
 const RENDER_BACKEND_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
   ? '' 
-  : 'https://tunetragedy.onrender.com'; // <--- Set your Render Web Service URL here!
+  : 'https://tunetragedy-backend.onrender.com'; // <--- Set your Render Web Service URL here!
 
 // State Management
 const state = {
